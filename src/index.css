@@ -1,5 +1,8 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,700,800&display=swap');
+
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-family: 'Nunito', sans-serif;
 }
