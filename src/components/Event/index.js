@@ -1,25 +1,50 @@
 import React from 'react';
-import './styles.sass';
+import styles from './styles.module.sass';
+
 import { epochSecondsToTime } from '../../util';
 
+import EventPopup from '../EventPopup';
 
-function Event(props) {
-  const { event } = props;
-  const end = epochSecondsToTime(props.event.endTime);
-  return (
-    <div className="event">
-      <div className="name">{event.name}</div>
-      <div className="details">
-        <div className="location">
-          {event.locations.map(location => location.description).join(' & ')}
+
+class Event extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      showPopup: false,
+    };
+  }
+  showPopup() {
+    this.setState({ showPopup: true });
+  }
+
+  hidePopup() {
+    this.setState({ showPopup: false });
+  }
+
+  render() {
+    const { event } = this.props;
+    const end = epochSecondsToTime(event.endTime);
+    return (
+      <div>
+        <div className={styles.event} onClick={() => this.showPopup()}>
+          <div className={styles.name}>{event.name}</div>
+          <div className={styles.details}>
+            <div className={styles.location}>
+              {event.locations.map(location => location.description).join(' & ')}
+            </div>
+
+            <div className={styles.spacer}/>
+
+            <div className={styles['end-time']}>{end.time}<span className={styles.small}>{end.ampm}</span></div>
+          </div>
         </div>
 
-        <div className="spacer"/>
-        
-        <div className="end-time">{end.time}<span className="small">{end.ampm}</span></div>
+        <div style={{display: this.state.showPopup ? 'block' : 'none'}}>
+          <EventPopup event={event} hidePopup={() => this.hidePopup()}/>
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 }
 
 
