@@ -1,7 +1,8 @@
 import React from 'react';
-import './App.sass';
+import styles from './App.module.sass';
 
 import EventsTruck from './components/EventsTruck';
+import EventPopup from './components/EventPopup';
 
 class App extends React.Component {
   constructor(props) {
@@ -9,6 +10,10 @@ class App extends React.Component {
     this.state = {
       firstDayEvents: [],
       secondDayEvents: [],
+      animationControl: 0, // goes from 0 to 1, the two trucks' translateY are based on this value
+      truckHeight: 0, // used for animations (will be updated using the onHeightChange callback prop on EventTruck)
+      truck2Height: 0,
+      popupEvent: null,
     }
   }
 
@@ -46,28 +51,46 @@ class App extends React.Component {
       this.setState({
         firstDayEvents: eventsByDateArray[0] || [],
         secondDayEvents: eventsByDateArray[1] || [],
-      });
+      }, () => this.animateTrucks()); // animate the trucks moving onto the page after the events load
     })
   }
 
+  animateTrucks() {
+    this.setState({ animationControl: 1 });
+  }
+
   render() {
+    // The following positions the first truck 25px from the bottom, and the second truck 25px from the top after animation
+    const truckTranslateY = -window.innerHeight + (2 * window.innerHeight - this.state.truckHeight - 25) * this.state.animationControl;
+    const truck2TranslateY = window.innerHeight - (window.innerHeight - 25) * this.state.animationControl;
     return (
-      <div className="App">
-        <div className="scene">
-          <div className="grass"/>
-          <div className="road">
-            <div className="lane">
+      <div className={styles.App}>
+        {this.state.popupEvent && <EventPopup event={this.state.popupEvent} hidePopup={() => this.setState({ popupEvent: null})}/>}
 
-            </div>
-
-            <div className="separator"></div>
-
-            <div className="lane">
-              <EventsTruck events={this.state.firstDayEvents}/>
-            </div>
+        <div className={styles.grass}/>
+        <div className={styles.road}>
+          <div className={styles.lane}>
+            <EventsTruck
+              events={this.state.firstDayEvents}
+              translateY={truckTranslateY}
+              flip
+              onHeightChange={height => this.setState({ truckHeight: height })}
+              showPopup={event => this.setState({ popupEvent: event })}
+            />
           </div>
-          <div className="grass"/>
+
+          <div className={styles.separator}></div>
+
+          <div className={styles.lane}>
+            <EventsTruck
+              events={this.state.secondDayEvents}
+              translateY={truck2TranslateY}
+              onHeightChange={height => this.setState({ truck2Height: height })}
+              showPopup={event => this.setState({ popupEvent: event })}
+            />
+          </div>
         </div>
+        <div className={styles.grass}/>
       </div>
     );
   }

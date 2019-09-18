@@ -12,7 +12,7 @@ const formatDate = seconds => (
 
 function EventPopup({ event, hidePopup }) {
   const start = epochSecondsToTime(event.startTime);
-  const end = epochSecondsToTime(event.endTime);
+  const end = epochSecondsToTime(event.endTime);  
   // only taking the first location for now since the google maps embed thing that doesn't need a
   // GCP api key only supports marking one location
   const { latitude, longitude } = event.locations[0];
