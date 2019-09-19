@@ -12,11 +12,13 @@ const formatDate = seconds => (
 
 function EventPopup({ event, hidePopup }) {
   const start = epochSecondsToTime(event.startTime);
-  const end = epochSecondsToTime(event.endTime);  
+  const end = epochSecondsToTime(event.endTime);
+
   // only taking the first location for now since the google maps embed thing that doesn't need a
   // GCP api key only supports marking one location
   const { latitude, longitude } = event.locations[0];
   const googleMapsSrc = `https://www.google.com/maps?q=${latitude},${longitude}&hl=es;z=14&&output=embed`;
+
   return (
     <div className={styles['event-popup']} onClick={() => hidePopup()}> {/* hide popup when there is click anywhere on the darkening background */}
       <div className={styles.content} onClick={e => e.stopPropagation()}> {/* don't hide popup when the content is clicked on */}
@@ -49,6 +51,7 @@ function EventPopup({ event, hidePopup }) {
 
         <div className={styles.description}>{event.description}</div>
 
+        <div className={styles.sponsor}>Sponsored by <span className={styles.color}>{event.sponsor}</span></div>
       </div>
     </div>
   );

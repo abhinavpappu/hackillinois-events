@@ -1,7 +1,8 @@
 import React from "react";
 import styles from './styles.module.sass';
 
-import truckFront from '../../assets/truck_front_green.svg';
+import truckFrontGreen from '../../assets/truck_front_green.svg';
+import truckFrontRed from '../../assets/truck_front_red.svg'
 import Event from '../Event';
 import { epochSecondsToTime } from "../../util";
 
@@ -38,12 +39,19 @@ class EventsTruck extends React.Component {
 
     return Array.from(eventsByTime.entries()).map(([epochTime, events]) => {
       const { time, ampm } = epochSecondsToTime(epochTime);
-      const { showPopup } = this.props;
+      const { showPopup, starEvent } = this.props;
       return (
         <div className={styles['events-at-time']} key={epochTime}>
           <div className={styles.time}>{time}<span className={styles.small}>{ampm}</span></div>
           <div className={styles.events}>
-            <div>{events.map(event => <Event event={event} key={event.name} showPopup={event => showPopup(event)}/>)}</div>
+            {events.map(event => 
+              <Event
+                event={event}
+                key={event.name}
+                showPopup={event => showPopup(event)}
+                starEvent={eventName => starEvent(eventName)}
+              />
+            )}
           </div>
         </div>
       );
@@ -51,6 +59,7 @@ class EventsTruck extends React.Component {
   }
 
   render() {
+    const truckFront = this.props.green ? truckFrontGreen : truckFrontRed;
     const truckStyle = { transform: `translate(10px, ${this.props.translateY}px)` };
     const eventsContainerStyle = { }
     const truckFrontStyle = { }
@@ -60,7 +69,7 @@ class EventsTruck extends React.Component {
 
       // need to flip the direction of the shadow since it's rotated 180deg
       // (don't need to flip events-container because it's rotated twice)
-      truckFrontStyle.boxShadow = "-150px -4px 4px rgba(0, 0, 0, 0.25)"
+      truckFrontStyle.boxShadow = "-110px -4px 4px rgba(0, 0, 0, 0.25)"
     }
 
     const date = new Date((this.props.events[0] || {}).startTime * 1000)
