@@ -79,8 +79,8 @@ class App extends React.Component {
       this.setState({
         firstDayEvents: day1 || [],
         secondDayEvents: day2 || [],
-      }, () => this.animateTrucks()); // animate the trucks moving onto the page after the events load
-    })
+      }, () => setTimeout(() => this.animateTrucks(), 500)); // animate the trucks moving onto the page after the events load
+    });
   }
 
   animateTrucks() {
@@ -119,6 +119,7 @@ class App extends React.Component {
         <div className={styles.grass}/>
         <div className={styles.road}>
           <div className={styles.lane}>
+            <div className={styles.text}>Hack<span className={styles.color}>Illinois</span></div>
             <EventsTruck
               events={this.state.firstDayEvents}
               translateY={truckTranslateY}
@@ -132,6 +133,7 @@ class App extends React.Component {
           <div className={styles.separator}></div>
 
           <div className={styles.lane}>
+            <div className={styles.text}>Events</div>
             <EventsTruck
               events={this.state.secondDayEvents}
               translateY={truck2TranslateY}
