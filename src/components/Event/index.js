@@ -8,18 +8,25 @@ import { faStar } from '@fortawesome/free-regular-svg-icons';
 import { faStar as faStarFilled } from '@fortawesome/free-solid-svg-icons';
 
 function Event({ event, showPopup, starEvent}) {
+  const start = epochSecondsToTime(event.startTime);
   const end = epochSecondsToTime(event.endTime);
   const starIcon = event.starred ? faStarFilled : faStar;
   return (
     <div>
       <div className={styles.event} onClick={() => showPopup(event)}>
+        <div className={styles.times}>
+          {start.time}<span className={styles.ampm}>{start.ampm}</span>
+          &nbsp;–&nbsp;
+          {end.time}<span className={styles.ampm}>{end.ampm}</span>
+        </div>
+
         <div className={styles.title}>
           <div className={styles.name}>{event.name}</div>
           <div className={styles.spacer}/>
           <FontAwesomeIcon
             className={styles.icon}
             icon={starIcon}
-            onClick={e => {starEvent(event.name); e.stopPropagation()}}
+            onClick={e => {starEvent(event.id); e.stopPropagation()}}
           />  
         </div>
 
@@ -29,8 +36,6 @@ function Event({ event, showPopup, starEvent}) {
           </div>
 
           <div className={styles.spacer}/>
-
-          <div className={styles['end-time']}>{end.time}<span className={styles.small}>{end.ampm}</span></div>
         </div>
       </div>
     </div>

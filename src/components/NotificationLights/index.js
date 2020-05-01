@@ -50,7 +50,7 @@ class NotificationLights extends React.Component {
         } else {
           this.setState({ selectedOption: 'none' }, () => this.resetTimeouts());
           localStorage.notificationFrequency = 'none';
-          alert('Please allow us permission to show notification to enable this option');
+          alert('Please allow us permission to show notifications in order to enable this option');
         }
       });
     } else {

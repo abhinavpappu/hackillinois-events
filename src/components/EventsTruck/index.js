@@ -4,58 +4,34 @@ import styles from './styles.module.sass';
 import truckFrontGreen from '../../assets/truck_front_green.svg';
 import truckFrontRed from '../../assets/truck_front_red.svg'
 import Event from '../Event';
-import { epochSecondsToTime } from "../../util";
 
 class EventsTruck extends React.Component {
   constructor(props) {
     super(props);
     this.truckRef = React.createRef();
-    this.state = {
-      height: 0,
-    }
   }
 
   componentDidUpdate() {
     const height = this.truckRef.current.offsetHeight;
-    if (this.props.onHeightChange && height !== this.state.height) {
-      this.setState({ height }, () => this.props.onHeightChange(height));
+    if (this.props.onHeightChange && height !== this.props.height) {
+      this.props.onHeightChange(height);
     }
   }
 
   renderEvents() {
-    // using a map instead of object because we want to preserve order, so that earlier
-    // start times come first when iterating
-    const eventsByTime = new Map();
-    this.props.events
+    const { events, showPopup, starEvent } = this.props;
+
+    return events
       .slice(0) // make a copy so we don't modify the original
       .sort((a, b) => a.startTime - b.startTime)
-      .forEach(event => {
-        if (eventsByTime.has(event.startTime)) {
-          eventsByTime.get(event.startTime).push(event);
-        } else {
-          eventsByTime.set(event.startTime, [event]);
-        }
-      });
-
-    return Array.from(eventsByTime.entries()).map(([epochTime, events]) => {
-      const { time, ampm } = epochSecondsToTime(epochTime);
-      const { showPopup, starEvent } = this.props;
-      return (
-        <div className={styles['events-at-time']} key={epochTime}>
-          <div className={styles.time}>{time}<span className={styles.small}>{ampm}</span></div>
-          <div className={styles.events}>
-            {events.map(event => 
-              <Event
-                event={event}
-                key={event.name}
-                showPopup={event => showPopup(event)}
-                starEvent={eventName => starEvent(eventName)}
-              />
-            )}
-          </div>
-        </div>
-      );
-    });
+      .map(event => (
+        <Event
+          event={event}
+          key={event.name}
+          showPopup={showPopup}
+          starEvent={starEvent}
+        />
+      ))
   }
 
   render() {
@@ -83,7 +59,10 @@ class EventsTruck extends React.Component {
 
         <div className={styles['events-container']} style={eventsContainerStyle}>
           <div className={styles['day-of-week']}>{dayOfWeek}</div>
-          { this.renderEvents() }
+          
+          <div className={styles.events}>
+            { this.renderEvents() }
+          </div>
         </div>
       </div>
     );

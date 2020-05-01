@@ -51,7 +51,12 @@ function EventPopup({ event, hidePopup }) {
 
         <div className={styles.description}>{event.description}</div>
 
-        <div className={styles.sponsor}>Sponsored by <span className={styles.color}>{event.sponsor}</span></div>
+        {event.sponsor && (
+          <div className={styles.sponsor}>
+            Sponsored by <span className={styles.color}>{event.sponsor}</span>
+          </div>
+        )}
+        
       </div>
     </div>
   );

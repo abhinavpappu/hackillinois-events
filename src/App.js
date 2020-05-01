@@ -7,7 +7,7 @@ import NotificationLights from './components/NotificationLights';
 
 function getEvents() {
   return (
-    fetch('https://sad-hamilton-0c5a80.netlify.com/event/', {
+    fetch('https://api.hackillinois.org/event/', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -44,14 +44,14 @@ function splitEventsIntoDays(events) {
 function starEvents(events) {
   const starredEvents = JSON.parse(localStorage.starredEvents || "[]");
   events.forEach(event => {
-    event.starred = starredEvents.includes(event.name);
+    event.starred = starredEvents.includes(event.id);
   });
 }
 
 function saveStarredEvents(events) {
   localStorage.starredEvents = JSON.stringify(events
     .filter(event => event.starred)
-    .map(event => event.name)
+    .map(event => event.id)
   );
 }
 
@@ -59,11 +59,9 @@ class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      firstDayEvents: [],
-      secondDayEvents: [],
+      eventsByDay: [[], [], []], // [day1, day2, day3]
       animationControl: 0, // goes from 0 to 1, the two trucks' translateY are based on this value
-      truckHeight: 0, // used for animations (will be updated using the onHeightChange callback prop on EventTruck)
-      truck2Height: 0,
+      truckHeights: [0, 0, 0], // used for animations (will be updated using the onHeightChange callback prop on EventTruck)
       popupEvent: null,
     }
   }
@@ -73,13 +71,12 @@ class App extends React.Component {
     getEvents().then(events => {
       starEvents(events);
 
-      // We assume there are only two days for now (will expand road to 3 lanes later)
-      const [day1, day2] = splitEventsIntoDays(events)
+      const [day1, day2, day3] = splitEventsIntoDays(events).map(arr => arr || []);
 
-      this.setState({
-        firstDayEvents: day1 || [],
-        secondDayEvents: day2 || [],
-      }, () => setTimeout(() => this.animateTrucks(), 500)); // animate the trucks moving onto the page after the events load
+      this.setState({ eventsByDay: [day1, day2, day3] }, () => {
+        // animate the trucks moving onto the page after the events load
+        setTimeout(() => this.animateTrucks(), 500);
+      });
     });
   }
 
@@ -88,45 +85,79 @@ class App extends React.Component {
   }
 
   // this method stars/unstars an event depending on the previous value
-  starEvent(eventName, stateDayString) {
+  starEvent(eventId, dayIndex) {
     this.setState(state => {
-      const events = state[stateDayString].map(event => {
-        if (event.name === eventName) {
+      const eventsByDay = state.eventsByDay.slice(0); // make copy
+      eventsByDay[dayIndex] = eventsByDay[dayIndex].map(event => {
+        if (event.id === eventId) {
           return Object.assign({}, event, {starred: !event.starred});
         }
         return event;
       });
-      return { [stateDayString]: events }; 
+      return { eventsByDay }; 
     }, () => {
       saveStarredEvents(this.getAllEvents());
     });
   }
 
   getAllEvents() {
-    return this.state.firstDayEvents.concat(this.state.secondDayEvents);
+    const { eventsByDay } = this.state;
+    return eventsByDay.reduce((allEvents, events) => allEvents.concat(events), []);
+  }
+
+  setTruckHeight(truckIndex, height) {
+    this.setState(state => {
+      const truckHeights = state.truckHeights.slice(0); // make copy
+      truckHeights[truckIndex] = height;
+      return { truckHeights };
+    });
   }
 
   render() {
-    // The following positions the first truck 25px from the bottom, and the second truck 25px from the top after animation
-    const truckTranslateY = -window.innerHeight + (2 * window.innerHeight - this.state.truckHeight - 25) * this.state.animationControl;
-    const truck2TranslateY = window.innerHeight - (window.innerHeight - 25) * this.state.animationControl;
+    const { eventsByDay, truckHeights, animationControl } = this.state;
+
+    // The following positions the first and third truck 25px from the bottom, and the second truck 25px from the top after animation
+    const truckTranslates = [
+      -window.innerHeight + (2 * window.innerHeight - truckHeights[0] - 25) * animationControl,
+      window.innerHeight - (window.innerHeight - 25) * animationControl,
+      -window.innerHeight + (2 * window.innerHeight - truckHeights[2] - 25) * animationControl,
+    ];
+
     return (
       <div className={styles.App}>
-        {this.state.popupEvent && <EventPopup event={this.state.popupEvent} hidePopup={() => this.setState({ popupEvent: null})}/>}
+        {this.state.popupEvent && (
+          <EventPopup event={this.state.popupEvent} hidePopup={() => this.setState({ popupEvent: null})} />
+        )}
 
         <NotificationLights events={this.getAllEvents()} />
 
         <div className={styles.grass}/>
         <div className={styles.road}>
           <div className={styles.lane}>
-            <div className={styles.text}>Hack<span className={styles.color}>Illinois</span></div>
+            <div className={styles.text}>Hack</div>
             <EventsTruck
-              events={this.state.firstDayEvents}
-              translateY={truckTranslateY}
+              events={eventsByDay[0]}
+              translateY={truckTranslates[0]}
               flip
-              onHeightChange={height => this.setState({ truckHeight: height })}
+              height={truckHeights[0]}
+              onHeightChange={height => this.setTruckHeight(0, height)}
               showPopup={event => this.setState({ popupEvent: event })}
-              starEvent={eventName => this.starEvent(eventName, 'firstDayEvents')}
+              starEvent={id => this.starEvent(id, 0)}
+            />
+          </div>
+
+          <div className={styles.separator}></div>
+
+          <div className={styles.lane}>
+            <div className={styles.text + ' '}><span className={styles.color}>Illinois</span></div>
+            <EventsTruck
+              events={eventsByDay[1]}
+              translateY={truckTranslates[1]}
+              height={truckHeights[1]}
+              onHeightChange={height => this.setTruckHeight(1, height)}
+              showPopup={event => this.setState({ popupEvent: event })}
+              starEvent={id => this.starEvent(id, 1)}
+              green={true}
             />
           </div>
 
@@ -135,15 +166,17 @@ class App extends React.Component {
           <div className={styles.lane}>
             <div className={styles.text}>Events</div>
             <EventsTruck
-              events={this.state.secondDayEvents}
-              translateY={truck2TranslateY}
-              onHeightChange={height => this.setState({ truck2Height: height })}
+              events={eventsByDay[2]}
+              translateY={truckTranslates[2]}
+              flip
+              height={truckHeights[2]}
+              onHeightChange={height => this.setTruckHeight(2, height)}
               showPopup={event => this.setState({ popupEvent: event })}
-              starEvent={eventName => this.starEvent(eventName, 'secondDayEvents')}
-              green={true}
+              starEvent={id => this.starEvent(id, 2)}
             />
           </div>
         </div>
+
         <div className={styles.grass}/>
       </div>
     );
