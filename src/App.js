@@ -5,17 +5,20 @@ import EventsTruck from './components/EventsTruck';
 import EventPopup from './components/EventPopup';
 import NotificationLights from './components/NotificationLights';
 
+import {events} from './events-2020.json';
+
 function getEvents() {
-  return (
-    fetch('https://api.hackillinois.org/event/', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      }
-    })
-    .then(response => response.json())
-    .then(json => json.events)
-  );
+  // return (
+  //   fetch('https://api.hackillinois.org/event/', {
+  //     method: 'GET',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     }
+  //   })
+  //   .then(response => response.json())
+  //   .then(json => json.events)
+  // );
+  return Promise.resolve(events);
 }
 
 function splitEventsIntoDays(events) {
